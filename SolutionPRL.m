@@ -9,13 +9,14 @@ c=3e8;                                                          %光速
 Omega=c*g;                                                      %时间调制频率
 eps0=8.85e-12;                                                  %真空介电常数
 mu0=4*pi*1e-7;                                                  %真空磁导率
-N=5;                                                            %平面波展开阶数
+N=12;                                                            %平面波展开阶数
 d=10;                                                           %介质板长度
+alpha=0.04;                                                     %调制强度
 
 %% Preprocessing
 Nt=(-N:N)';                                                     %展开阶数向量
 Nnum=length(Nt);                                                %展开后总波数
-OMEGA=linspace(-2*Omega,2*Omega,10000);                          %扫描频率
+OMEGA=linspace(-2*Omega,2*Omega,10000);                         %扫描频率
 omegaNum=length(OMEGA);                                         %扫描频率总数
 kv=zeros(2*Nnum,omegaNum);                                      %真空中特征值矩阵
 Hv=zeros(2*Nnum,omegaNum);                                      %真空中特征向量
@@ -51,7 +52,7 @@ for omega=OMEGA
         diag(Hv(1:Nnum,loop),0),diag(Hv(Nnum+1:2*Nnum,loop),0)];%真空中特征向量组
 
     %% 超材料中特征值
-    M=HE(0.04,omega,N,g,Omega,eps0,mu0);                        %系数矩阵
+    M=HE(alpha,omega,N,g,Omega,eps0,mu0);                        %系数矩阵
     [Vers,Vals]=eig(M);
     k_eig=diag(Vals);                                           %超材料特征值
     real_km=real(k_eig);
@@ -84,7 +85,7 @@ kImag(kImag==0)=NaN;
 % plot(kv_backward,omegaPlot,'g','LineWidth',1);
 
 %% Caculating transparent field
-NormOmega=0.69;                                                 %入射频率
+NormOmega=0;                                                 %入射频率
 Normomega=OMEGA/Omega;
 [~,omegaIndex]=min(abs(Normomega-NormOmega));
 omega=Normomega(omegaIndex)*Omega;
@@ -99,7 +100,7 @@ Mvref=Mv_(:,Hv_>0);
 km_=km(:,omegaIndex);
 Mm=Hm(:,:,omegaIndex);
 
-d=[0,10,20,30,40,50,60,70,80];                                                 %超材料的长度
+d=[0,10,20,30];                                                 %超材料的长度
 P=zeros(2*Nnum,2*Nnum,length(d));                               %代表超材料内的相移
 A=zeros(2*Nnum,Nnum,length(d));                                 %辅助矩阵A
 B=zeros(2*Nnum,Nnum,length(d));                                 %辅助矩阵B
@@ -122,8 +123,8 @@ for k=1:length(d)
 end
 
 %% Combine time domain waveform
-Ts=1/(7200*Omega);
-t=0:Ts:200*pi/Omega-Ts;
+Ts=1/(18000*Omega);
+t=0:Ts:6*pi/Omega-Ts;
 tNum=length(t);
 EHi=Mvinc*evinc;                                                %入射波系数
 EHr=Mvref*evref;                                                %反射波系数
@@ -146,15 +147,19 @@ Eout=real(Etras);
 Eout2=abs(Etras').^2;
 NormalizedEout2=Eout2/max(max(Eout2));
 
+%% Draw time domain waveform
 h3=figure;
-plot(t,Eout2,'LineWidth',1)
+plot(t*Omega,NormalizedEout2,'LineWidth',1)
+legend('d=0','d=10','d=20','d=30')
+title('NormalizedEout2 N=12')
 xlabel('Omegat')
 
-epsilonr=1+0.08*cos((g*d)'-Omega*t);
-% h4=figure;
-% plot(Omega*t,epsilonr,'LineWidth',1)
-% legend('d=0','d=10','d=20','d=30')
-% xlabel('Omegat')
+epsilonr=1+2*alpha*cos((g*d)'-Omega*t);
+h4=figure;
+plot(Omega*t,epsilonr,'LineWidth',1)
+legend('d=0','d=10','d=20','d=30')
+title('epsilonr')
+xlabel('Omegat')
 
 %% Draw the spectrogram
 fs = 1/Ts;
@@ -163,33 +168,16 @@ m=length(d)/2;
 if mod(length(d),2)~=0
     m=ceil(m);
 end
+yshift=zeros(tNum,length(d));
 for i = 1:length(d)
     y=fft(Eout(:,i));
-    f = (0:length(y)-1)*fs/length(y);
-    yshift=fftshift(y);
+    L=length(y);
+    f = fs/L*(-L/2:L/2-1);
+    yshift(:,i)=fftshift(y);
     subplot(m,2,i);
-    plot(fshift/Omega,abs(yshift))
+    plot(f/1e6,abs(yshift(:,i)))
     xlabel('Omegat')
     ylabel('Magnitude')
-    xlim([0 350])
+    legend(strcat('d=',num2str(d(i))))
+    xlim([0 1000])
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
