@@ -1,5 +1,5 @@
 %% Initialization
-% clear all
+clear all
 clc
 close all
 
@@ -9,14 +9,14 @@ c=3e8;                                                          %光速
 Omega=c*g;                                                      %时间调制频率
 eps0=8.85e-12;                                                  %真空介电常数
 mu0=4*pi*1e-7;                                                  %真空磁导率
-N=12;                                                            %平面波展开阶数
+N=500;                                                            %平面波展开阶数
 d=10;                                                           %介质板长度
-alpha=0.04;                                                     %调制强度
+alpha=0.06;                                                     %调制强度
 
 %% Preprocessing
 Nt=(-N:N)';                                                     %展开阶数向量
 Nnum=length(Nt);                                                %展开后总波数
-OMEGA=linspace(-2*Omega,2*Omega,10000);                         %扫描频率
+OMEGA=0.00001;                         %扫描频率
 omegaNum=length(OMEGA);                                         %扫描频率总数
 kv=zeros(2*Nnum,omegaNum);                                      %真空中特征值矩阵
 Hv=zeros(2*Nnum,omegaNum);                                      %真空中特征向量
@@ -93,6 +93,10 @@ omega=Normomega(omegaIndex)*Omega;
 %处理真空中的场
 Mv_=Mv(:,:,omegaIndex);
 Hv_=Hv(:,omegaIndex);
+if sum(isnan(Hv_))
+    Hv_(isnan(Hv_))=(-1).^(1:sum(isnan(Hv_)))*0.0027;
+end
+
 
 Mvinc=Mv_(:,Hv_<0);
 Mvref=Mv_(:,Hv_>0);
@@ -100,7 +104,7 @@ Mvref=Mv_(:,Hv_>0);
 km_=km(:,omegaIndex);
 Mm=Hm(:,:,omegaIndex);
 
-d=[0,10,20,30];                                                 %超材料的长度
+d=[0,15,30,45,60];                                                 %超材料的长度
 P=zeros(2*Nnum,2*Nnum,length(d));                               %代表超材料内的相移
 A=zeros(2*Nnum,Nnum,length(d));                                 %辅助矩阵A
 B=zeros(2*Nnum,Nnum,length(d));                                 %辅助矩阵B
@@ -123,7 +127,7 @@ for k=1:length(d)
 end
 
 %% Combine time domain waveform
-Ts=1/(18000*Omega);
+Ts=1/(1200*Omega);
 t=0:Ts:6*pi/Omega-Ts;
 tNum=length(t);
 EHi=Mvinc*evinc;                                                %入射波系数
@@ -157,7 +161,6 @@ xlabel('Omegat')
 epsilonr=1+2*alpha*cos((g*d)'-Omega*t);
 h4=figure;
 plot(Omega*t,epsilonr,'LineWidth',1)
-legend('d=0','d=10','d=20','d=30')
 title('epsilonr')
 xlabel('Omegat')
 
@@ -168,15 +171,16 @@ m=length(d)/2;
 if mod(length(d),2)~=0
     m=ceil(m);
 end
-yshift=zeros(tNum,length(d));
 for i = 1:length(d)
     y=fft(Eout(:,i));
     L=length(y);
-    f = fs/L*(-L/2:L/2-1);
-    yshift(:,i)=fftshift(y);
+    P=abs(y/L);
+    yshift=P(1:L/2+1);
+    yshift(2:end)=2*yshift(2:end);
+    f=fs/L*(0:(L/2));
     subplot(m,2,i);
-    plot(f/1e6,abs(yshift(:,i)))
-    xlabel('Omegat')
+    plot(f*2*pi/Omega,abs(yshift))
+    xlabel('omega/Omega')
     ylabel('Magnitude')
     legend(strcat('d=',num2str(d(i))))
     xlim([0 1000])
