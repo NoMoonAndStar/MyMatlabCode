@@ -1,5 +1,5 @@
 %% Initialization
-clear all
+clear
 clc
 close all
 
@@ -10,31 +10,24 @@ Omega = c * g; %时间调制频率
 eps0 = 8.85e-12; %真空介电常数
 mu0 = 4 * pi * 1e-7; %真空磁导率
 N = 500; %平面波展开阶数
-d = 10; %介质板长度
 alpha = 0.06; %调制强度
 
 %% Preprocessing
 Nt = (-N:N)'; %展开阶数向量
 Nnum = length(Nt); %展开后总波数
-OMEGA = 0.00001; %扫描频率
+OMEGA = 8.000001*Omega; %扫描频率
 omegaNum = length(OMEGA); %扫描频率总数
 kv = zeros(2 * Nnum, omegaNum); %真空中特征值矩阵
 Hv = zeros(2 * Nnum, omegaNum); %真空中特征向量
 Mv = zeros(2 * Nnum, 2 * Nnum, omegaNum); %真空中特征向量组
 kv_forward = zeros(2 * Nnum, omegaNum); %前向波特征值
 kv_backward = zeros(2 * Nnum, omegaNum); %后向波特征值
-Mm = zeros(2 * Nnum, 2 * Nnum, omegaNum); %超材料中特征矩阵
 km = zeros(2 * Nnum, omegaNum); %超材料中特征值
 Hm = zeros(2 * Nnum, 2 * Nnum, omegaNum); %超材料中特征向量
-Mvinc = zeros(2 * Nnum, Nnum, omegaNum); %前向波特征矩阵
-Mvref = zeros(2 * Nnum, Nnum, omegaNum); %后向波特征矩阵
-evinc = zeros(Nnum, 1); %入射波系数向量
-evref = zeros(Nnum, 1); %反射波系数向量
 evtra = zeros(Nnum, 1); %透射波系数向量
 
 %% Caculating eigenvalue
 loop = 1; %循环次数
-tNum = -N;
 
 for omega = OMEGA
 
@@ -86,7 +79,7 @@ kImag(kImag == 0) = NaN;
 % plot(kv_backward,omegaPlot,'g','LineWidth',1);
 
 %% Caculating transparent field
-NormOmega = 0; %入射频率
+NormOmega = 8*Omega; %入射频率
 Normomega = OMEGA / Omega;
 [~, omegaIndex] = min(abs(Normomega - NormOmega));
 omega = Normomega(omegaIndex) * Omega;
@@ -149,8 +142,8 @@ loop = 1;
 
 for k = t
     et = exp(1i * ((k1 + Nt * g) * d - (omega + Nt * Omega) * k)); %谐波
-    et = [et; et];
-    EHtra(:, :, loop) = EHt .* et;
+    ett = [et; et];
+    EHtra(:, :, loop) = EHt .* ett;
     Etras(loop, :) = sum(EHtra(1:Nnum, :, loop));
     loop = loop + 1;
 end
