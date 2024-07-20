@@ -1,3 +1,5 @@
+%%复现论文
+
 %% Initialization
 clear
 clc
@@ -15,7 +17,7 @@ alpha = 0.06; %调制强度
 %% Preprocessing
 Nt = (-N:N)'; %展开阶数向量
 Nnum = length(Nt); %展开后总波数
-OMEGA = 8.000001*Omega; %扫描频率
+OMEGA = 8.000001 * Omega; %扫描频率
 omegaNum = length(OMEGA); %扫描频率总数
 kv = zeros(2 * Nnum, omegaNum); %真空中特征值矩阵
 Hv = zeros(2 * Nnum, omegaNum); %真空中特征向量
@@ -43,7 +45,7 @@ for omega = OMEGA
     kv_backward(:, loop) = kv(:, loop);
     kv_backward(Hv(:, loop) < 0, loop) = NaN; %后向波特征值
     Mv(:, :, loop) = [diag(ones(1, Nnum), 0), diag(ones(1, Nnum), 0); ...
-                      diag(Hv(1:Nnum, loop), 0), diag(Hv(Nnum + 1:2 * Nnum, loop), 0)]; %真空中特征向量组
+                          diag(Hv(1:Nnum, loop), 0), diag(Hv(Nnum + 1:2 * Nnum, loop), 0)]; %真空中特征向量组
 
     %% 超材料中特征值
     M = HE(alpha, omega, N, g, Omega, eps0, mu0); %系数矩阵
@@ -79,7 +81,7 @@ kImag(kImag == 0) = NaN;
 % plot(kv_backward,omegaPlot,'g','LineWidth',1);
 
 %% Caculating transparent field
-NormOmega = 8*Omega; %入射频率
+NormOmega = 8 * Omega; %入射频率
 Normomega = OMEGA / Omega;
 [~, omegaIndex] = min(abs(Normomega - NormOmega));
 omega = Normomega(omegaIndex) * Omega;
