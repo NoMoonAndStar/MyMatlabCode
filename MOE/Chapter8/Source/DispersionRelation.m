@@ -1,6 +1,6 @@
 d = 0.01;
 syms betad
-kd = 0:1:10;
+kd = 0:0.001:1;
 k = kd / d;
 sd = zeros(length(kd), 2);
 
@@ -11,5 +11,7 @@ for i = 1:length(kd)
 end
 
 beta = sd / d;
-realbeta = real(beta);
-plot(k, real(beta)');
+[rows, cols] = find(imag(beta) == 0);
+realbeta = real(beta(rows, cols));
+
+plot(k, realbeta', '.');
