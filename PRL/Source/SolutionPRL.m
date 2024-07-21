@@ -11,13 +11,13 @@ c = 3e8; %光速
 Omega = c * g; %时间调制频率
 eps0 = 8.85e-12; %真空介电常数
 mu0 = 4 * pi * 1e-7; %真空磁导率
-N = 500; %平面波展开阶数
+N = 15; %平面波展开阶数
 alpha = 0.06; %调制强度
 
 %% Preprocessing
 Nt = (-N:N)'; %展开阶数向量
 Nnum = length(Nt); %展开后总波数
-OMEGA = 8.000001 * Omega; %扫描频率
+OMEGA = linspace(-2 * Omega, 2 * Omega, 10000); %扫描频率
 omegaNum = length(OMEGA); %扫描频率总数
 kv = zeros(2 * Nnum, omegaNum); %真空中特征值矩阵
 Hv = zeros(2 * Nnum, omegaNum); %真空中特征向量
@@ -66,19 +66,25 @@ omegaPlot = OMEGA / Omega;
 kPlot = km;
 kImag = real(kPlot) .* (imag(kPlot) ~= 0);
 kImag(kImag == 0) = NaN;
-% h1=figure;
-% hold on
-% grid on
-% plot(real(kPlot),omegaPlot,'g','LineWidth',1);                 %批量绘图
-% plot(kImag,omegaPlot,'ro','LineWidth',0.1);                    %特别显示出虚部不为0的部分
+h1 = figure;
+hold on
+grid on
+plot(real(kPlot), omegaPlot, 'g', 'LineWidth', 1); %批量绘图
+plot(kImag, omegaPlot, 'ro', 'LineWidth', 0.1); %特别显示出虚部不为0的部分
+xlabel('beta')
+ylabel('Normalizedomega')
+title('Dispersion in Luminal Material')
 
 %% Plot k-omega relation in Vaccumn
-% h2=figure;
-% hold on
-% grid on
-%plot(kv,omegaPlot,'ko','LineWidth',1);
-% plot(kv_forward,omegaPlot,'r','LineWidth',1);
-% plot(kv_backward,omegaPlot,'g','LineWidth',1);
+h2 = figure;
+hold on
+grid on
+plot(kv, omegaPlot, 'ko', 'LineWidth', 1);
+plot(kv_forward, omegaPlot, 'r', 'LineWidth', 1);
+plot(kv_backward, omegaPlot, 'g', 'LineWidth', 1);
+xlabel('beta')
+ylabel('Normalizedomega')
+title('Dispersion in Vaccumn')
 
 %% Caculating transparent field
 NormOmega = 8 * Omega; %入射频率
