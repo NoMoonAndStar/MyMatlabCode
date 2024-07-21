@@ -87,7 +87,7 @@ ylabel('Normalizedomega')
 title('Dispersion in Vaccumn')
 
 %% Caculating transparent field
-NormOmega = 8 * Omega; %入射频率
+NormOmega = 0.69; %入射频率
 Normomega = OMEGA / Omega;
 [~, omegaIndex] = min(abs(Normomega - NormOmega));
 omega = Normomega(omegaIndex) * Omega;
