@@ -3,7 +3,7 @@ d = 0.01;
 syms betad
 
 %真空中的波数
-kd = 0:0.001:4;
+kd = 0:0.001:12;
 %加载后的相位常数
 realbetad = zeros(1, length(kd));
 
