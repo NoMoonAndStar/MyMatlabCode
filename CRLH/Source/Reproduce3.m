@@ -1,4 +1,8 @@
 %% 复现3.1和3.2的图
+%初始化
+clear
+clc
+close all
 
 %四个电路参数
 LR = 1e-8; %右手单位长度电感
@@ -34,16 +38,17 @@ for i = 1:length(omega)
 end
 
 %剔除虚数解
-idx = beta == 0;
-beta(idx) = [];
-omega(idx) = [];
+idx = beta ~= 0;
+beta = beta(idx);
+omegaCRLH = omega(idx);
 
 %绘制色散曲线
 h1 = figure;
 hold on
-plot(beta, omega, '.', 'Color', 'r')
+plot(beta, omegaCRLH, '.', 'Color', 'r')
 %画取向相反时的色散曲线
-plot(-beta, omega, '.', 'Color', 'b')
+plot(-beta, omegaCRLH, '.', 'Color', 'b')
+%画坐标轴
 plot([0 0], [0, Omega], "LineWidth", 0.5, "Color", "k")
 xlim([-1 1])
 xlabel('beta')
@@ -52,9 +57,18 @@ title('Dispersion relation')
 
 %%fig3.3(b)
 %PRH
-betaPRH = omega * sqrt(LR * CR)
+betaPRH = omega * sqrt(LR * CR);
+%PLH
+betaPLH = -omegaL ./ omega;
 
 h2 = figure;
 hold on
-plot(beta, omega, '.', 'Color', 'r')
-plot(betaPRH, omega, '.', 'Color', 'b')
+plot(beta, omegaCRLH, '.', 'Color', 'b')
+plot(betaPRH, omega, '.', 'Color', 'r')
+plot(betaPLH, omega, '.', 'Color', 'g')
+plot([0 0], [0, Omega], "LineWidth", 0.5, "Color", "k")
+xlim([-0.6 0.6])
+xlabel('beta')
+ylabel('omega')
+title('Dispersion relation')
+legend('CRLH', 'PRH', 'PLH')
