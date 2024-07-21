@@ -13,7 +13,7 @@ k = LR * CL + LL * CR;
 omegase = sqrt(1 / (LR * CL));
 omegash = sqrt(1 / (LL * CR));
 
-%%3.1
+%%fig3.3(a)
 Omega = 3e7;
 omega = 0:Omega / 200000:Omega; %扫频范围
 beta = zeros(1, length(omega));
@@ -49,3 +49,12 @@ xlim([-1 1])
 xlabel('beta')
 ylabel('omega')
 title('Dispersion relation')
+
+%%fig3.3(b)
+%PRH
+betaPRH = omega * sqrt(LR * CR)
+
+h2 = figure;
+hold on
+plot(beta, omega, '.', 'Color', 'r')
+plot(betaPRH, omega, '.', 'Color', 'b')
