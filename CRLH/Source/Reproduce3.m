@@ -19,7 +19,7 @@ omegash = sqrt(1 / (LL * CR));
 
 %%fig3.3(a)
 Omega = 3e7;
-omega = 0:Omega / 200000:Omega; %扫频范围
+omega = 0:Omega / 20000:Omega; %扫频范围
 domega = omega(2) - omega(1);
 beta = zeros(1, length(omega));
 
@@ -126,3 +126,33 @@ legend('vpCRPLH', 'vgCRLH')
 xlim([0 Omega])
 ylim([-1 2])
 title('Phase velocity and group velocity of CRLH')
+
+%%fig3.7
+eps0 = 8.85418782e-12; %真空介电常数
+mu0 = 4 * pi * 1e-7; %真空磁导率
+epsr = (CR - 1 ./ (omega .^ 2 * LL)) / eps0; %等效介电常数
+mur = (LR - 1 ./ (omega .^ 2 * CL)) / mu0; %等效磁导率
+
+h6 = figure;
+hold on
+subplot(2, 1, 1)
+hold on
+plot(omega, epsr, '.', 'Color', 'b')
+plot([0 Omega], [0 0], 'LineWidth', 0.5, 'Color', 'k')
+plot([0 Omega], [CR / eps0 CR / eps0], '--', 'LineWidth', 0.5, 'Color', 'k')
+plot([omegash omegash], [-1e3 0], '--', 'LineWidth', 0.5, 'Color', 'k')
+xlabel('omega')
+ylabel('epsr')
+title('Relative permittivity and relative permeability')
+xlim([0 Omega])
+ylim([-1e3 3e3])
+subplot(2, 1, 2)
+hold on
+plot(omega, mur, '.', 'Color', 'r')
+plot([0 Omega], [0 0], 'LineWidth', 0.5, 'Color', 'k')
+plot([0 Omega], [LR / mu0 LR / mu0], '--', 'LineWidth', 0.5, 'Color', 'k')
+plot([omegase omegase], [-1e3 0], '--', 'LineWidth', 0.5, 'Color', 'k')
+xlabel('omega')
+ylabel('mur')
+xlim([0 Omega])
+ylim([-0.01 0.01])
