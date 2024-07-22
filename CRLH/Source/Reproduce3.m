@@ -156,3 +156,28 @@ xlabel('omega')
 ylabel('mur')
 xlim([0 Omega])
 ylim([-0.01 0.01])
+
+eta = sqrt(epsr .* mur); %等效折射率
+n0 = 3e8 * sqrt(LR * CR);
+LHidx = omega < min(omegase, omegash);
+eta(LHidx) = -eta(LHidx);
+realidx = imag(eta) == 0;
+imagidx = imag(eta) ~= 0;
+realeta = eta(realidx);
+imageta = -imag(eta(imagidx));
+omegarealteta = omega(realidx);
+omegaimageta = omega(imagidx);
+
+h7 = figure;
+hold on
+plot(omegarealteta, realeta, '.', 'Color', 'b')
+plot(omegaimageta, imageta, '--', 'Color', 'r')
+plot([0 Omega], [0 0], 'LineWidth', 0.5, 'Color', 'k')
+plot([omegash omegash], [-1e3 0], '--', 'LineWidth', 0.5, 'Color', 'k')
+plot([omegase omegase], [-1e3 0], '--', 'LineWidth', 0.5, 'Color', 'k')
+plot([0 Omega], [n0 n0], '--', 'LineWidth', 0.5, 'Color', 'k')
+ylim([-10 5])
+xlabel('omega')
+ylabel('eta')
+legend('realeta', 'imageta')
+title('Effective Refractive index')
