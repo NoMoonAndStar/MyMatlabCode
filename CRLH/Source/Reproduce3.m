@@ -20,6 +20,7 @@ omegash = sqrt(1 / (LL * CR));
 %%fig3.3(a)
 Omega = 3e7;
 omega = 0:Omega / 200000:Omega; %扫频范围
+domega = omega(2) - omega(1);
 beta = zeros(1, length(omega));
 
 for i = 1:length(omega)
@@ -91,6 +92,7 @@ plot([omegash / omegase, omegash / omegase], [0, Omega], 'LineWidth', 0.5, 'Colo
 plot([0 5], [omegash, omegash], 'LineWidth', 0.5, 'Color', 'k')
 xlabel('Zc/ZL')
 ylabel('omega')
+legend('Zc', 'Xc')
 xlim([0 5])
 title('Characteristic impedance')
 
@@ -98,7 +100,29 @@ title('Characteristic impedance')
 vpCRLH = omegaCRLH ./ beta;
 vpPRH = omega ./ betaPRH;
 vpPLH = omega ./ betaPLH; %相速度
-vgCRLH = abs(omega .* omegaR .^ -2 - omega .^ -3 .* omegaL .^ 2) ./ sqrt((omega ./ omegaR) .^ 2 + (omegaL ./ omega) .^ 2 - k .* omegaL .^ 2);
+vgCRLH = domega ./ gradient(beta);
+vgPRH = omega ./ betaPRH;
+vgPLH = omega .^ 2 / omegaL; %群速度
 h4 = figure;
 hold on
 plot(omega, vpPLH, '.', 'Color', 'b')
+plot(omega, vgPLH, '.', 'Color', 'r')
+xlabel('omega')
+ylabel('vp, vg')
+legend('vpPLH', 'vgPLH')
+xlim([0 Omega])
+title('Phase velocity and group velocity')
+
+h5 = figure;
+hold on
+plot(omegaCRLH, vpCRLH / omegaR, '.', 'Color', 'b')
+plot(omegaCRLH, vgCRLH / omegaR, '.', 'Color', 'r')
+plot([0 Omega], [0 0], 'LineWidth', 0.5, 'Color', 'k')
+plot([min(omegase, omegash) min(omegase, omegash)], [-1, 0], '--', 'Color', 'k')
+plot([max(omegase, omegash) max(omegase, omegash)], [0, 2], '--', 'Color', 'k')
+xlabel('omega')
+ylabel('vp/omegaR, vg/omegaR')
+legend('vpCRPLH', 'vgCRLH')
+xlim([0 Omega])
+ylim([-1 2])
+title('Phase velocity and group velocity of CRLH')
