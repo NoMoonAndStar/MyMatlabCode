@@ -72,3 +72,33 @@ xlabel('beta')
 ylabel('omega')
 title('Dispersion relation')
 legend('CRLH', 'PRH', 'PLH')
+
+%%fig3.4
+Zc = sqrt(((omega / omegase) .^ 2 - 1) ./ ((omega / omegash) .^ 2 - 1)); %特性阻抗
+ZL = sqrt(LL / CL);
+redx = imag(Zc) == 0;
+imdx = imag(Zc) ~= 0;
+OmegaZc = omega(redx);
+OmegaXc = omega(imdx);
+Xc = imag(Zc(imdx));
+Zc = Zc(redx);
+
+h3 = figure;
+hold on
+plot(Zc / ZL, OmegaZc, '.', 'Color', 'b')
+plot(Xc / ZL, OmegaXc, '--', 'Color', 'r')
+plot([omegash / omegase, omegash / omegase], [0, Omega], 'LineWidth', 0.5, 'Color', 'k')
+plot([0 5], [omegash, omegash], 'LineWidth', 0.5, 'Color', 'k')
+xlabel('Zc/ZL')
+ylabel('omega')
+xlim([0 5])
+title('Characteristic impedance')
+
+%%fig3.5
+vpCRLH = omegaCRLH ./ beta;
+vpPRH = omega ./ betaPRH;
+vpPLH = omega ./ betaPLH; %相速度
+vgCRLH = abs(omega .* omegaR .^ -2 - omega .^ -3 .* omegaL .^ 2) ./ sqrt((omega ./ omegaR) .^ 2 + (omegaL ./ omega) .^ 2 - k .* omegaL .^ 2);
+h4 = figure;
+hold on
+plot(omega, vpPLH, '.', 'Color', 'b')
