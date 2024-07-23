@@ -5,8 +5,8 @@ clear
 clc
 close all
 
-LR = 2.5 * 1e-9; %右手单位长度电感
-CR = 1e-12; %右手单位长度电感
+LL = 2.5 * 1e-9; %右手单位长度电感
+CL = 1e-12; %右手单位长度电感
 
 Omega = 1e11;
 omega = 0:Omega / 10000:Omega; %扫频范围
@@ -15,8 +15,8 @@ p = 3.75e-4; %网格间距
 N = 10; %单元个数
 L = p * N; %网格长度
 
-Z = 1i * omega * LR / 2;
-Y = 1i * omega * CR;
+Z = 1 ./ (1i * 2 * omega * CL);
+Y = 1 ./ (1i * omega * LL);
 
 Zc = sqrt(Z ./ Y);
 
@@ -63,8 +63,8 @@ title('S21 phase')
 h3 = figure;
 hold on
 unwrappedS21_phi = unwrap(S21_phi, -360);
+unwrappedS21_phi = unwrappedS21_phi - min(unwrappedS21_phi);
 plot(omega, unwrappedS21_phi, '-', 'Color', 'b')
-ylim([-2000, 0])
 xlabel('omega')
 ylabel('phase')
 title('unwrapped S21 phase')
