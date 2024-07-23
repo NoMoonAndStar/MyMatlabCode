@@ -1,12 +1,14 @@
-%%周期 对称 无耗 PRH的特性
+%%周期 对称 无耗 不平衡 CRLH的特性
 
 %初始化
 clear
 clc
 close all
 
-LR = 2.5 * 1e-9; %右手单位长度电感
+LR = 2 * 1e-9; %右手单位长度电感
 CR = 1e-12; %右手单位长度电感
+LL = 2.5 * 1e-9; %右手单位长度电感
+CL = 0.75 * 1e-12; %右手单位长度电感
 
 Omega = 1e11;
 omega = 0:Omega / 10000:Omega; %扫频范围
@@ -15,16 +17,22 @@ p = 3.75e-4; %网格间距
 N = 10; %单元个数
 L = p * N; %网格长度
 
-Z = 1i * omega * LR / 2;
-Y = 1i * omega * CR;
+Z = 1i * omega * LR / 2 + 1 ./ (1i * 2 * omega * CL);
+Y = 1i * omega * CR + 1 ./ (1i * omega * LL);
 
 Zc = sqrt(Z ./ Y);
+omega0 = (LR * CR * LL * CL) ^ (-1/4);
 
 A = zeros(2, 2, length(omega)); %单元传输矩阵
 AN = zeros(2, 2, length(omega)); %总传输矩阵
 SN = zeros(2, 2, length(omega)); %散射矩阵
 
 for i = 1:length(omega)
+
+    if real(Zc(i)) == 0
+        Zc(i) = imag(Zc(i));
+    end
+
     A(:, :, i) = [1 Z(i) / 2; 0 1] * [1 0; Y(i) 1] * [1 Z(i) / 2; 0 1];
     AN(:, :, i) = A(:, :, i) ^ N;
     SN(:, :, i) = 1 / (AN(1, 1, i) + AN(1, 2, i) / Zc(i) + AN(2, 1, i) * Zc(i) + AN(2, 2, i)) * ...
@@ -64,8 +72,10 @@ title('S21 phase')
 h3 = figure;
 hold on
 unwrappedS21_phi = unwrap(S21_phi, -360);
+[~, idx] = min(abs(omega0 - omega));
+val = mean([unwrappedS21_phi(idx - 1), unwrappedS21_phi(idx + 1)]);
+unwrappedS21_phi = unwrappedS21_phi - val;
 plot(omega, unwrappedS21_phi, '-', 'Color', 'b')
-ylim([-2000, 0])
 xlabel('omega')
 ylabel('phase')
 title('unwrapped S21 phase')

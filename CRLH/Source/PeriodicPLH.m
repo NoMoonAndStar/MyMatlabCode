@@ -1,4 +1,4 @@
-%%周期 对称 无耗 PRH的特性
+%%周期 对称 无耗 PLH的特性
 
 %初始化
 clear
@@ -44,6 +44,7 @@ S11_dB = 20 * log10(abs(S11));
 S21_dB = 20 * log10(abs(S21));
 plot(omega, S11_dB, '-', 'Color', 'b')
 plot(omega, S21_dB, '-', 'Color', 'r')
+ylim([-60 10])
 xlabel('omega')
 ylabel('magnitude')
 title('S11/S21')
