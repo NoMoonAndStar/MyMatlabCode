@@ -82,7 +82,7 @@ ylabel('omega')
 title('Dispersion relation from M to gamma')
 
 %% fig4.5(b)
-m = 500; %网格精度
+m=500;%网格精度
 kpx = linspace(-pi, pi, m);
 kpy = linspace(-pi, pi, m);
 
@@ -140,25 +140,19 @@ Y = Y(:)';
 %画一系列频率(omega<omega0)的等值线图
 omega0 = (LR * CR * LL * CL) ^ (-1/4);
 [~, omega0_idx] = min(abs(omega - omega0));
+omegaless_range = omega(1:omega0_idx);
+omegamore_range=omega(omega0_idx:end)
 
 h3 = figure;
 hold on
 
-for i = 1:5:omega0_idx
-    plot3(big_array_kpx(i, :), big_array_kpy(i, :), repmat(omega(i), 1, max_length), '.')
+for i = 1::omega0_idx
+    plot3(big_array_kpx(i, :), big_array_kpy(i, :), repmat(omegaless_range(i), 1, max_length),'.')
 end
 
-xlabel('kx*px')
-ylabel('ky*py')
-title('Dispersion relation of 2D CRLH with omega<omega0')
-
-h4 = figure;
+h3 = figure;
 hold on
 
-for i = omega0_idx:10:length(omega4)
-    plot3(big_array_kpx(i, :), big_array_kpy(i, :), repmat(omega(i), 1, max_length), '.')
+for i = 1:omega0_idx
+    plot3(big_array_kpx(i, :), big_array_kpy(i, :), repmat(omegaless_range(i), 1, max_length),'.')
 end
-
-xlabel('kx*px')
-ylabel('ky*py')
-title('Dispersion relation of 2D CRLH with omega>omega0')
