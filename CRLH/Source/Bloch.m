@@ -35,8 +35,8 @@ for i = 1:length(omega)
             solutions = [];
 
             for j = 0:3 % 因为周期是2π，所以4π内有2个完整的周期
-                solutions = [solutions solution0 + 2 * pi * j];
-                solutions = [solutions -solution0 + 2 * pi * (j + 1)];
+                solutions = [solutions solution0 + 2 * pi * j]; %#ok<AGROW>
+                solutions = [solutions -solution0 + 2 * pi * (j + 1)]; %#ok<AGROW>
             end
 
             ValidSolutions = solutions(-4 * pi <= solutions & solutions <= 4 * pi);
