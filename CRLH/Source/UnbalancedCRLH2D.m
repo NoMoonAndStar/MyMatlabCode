@@ -6,10 +6,10 @@ clc
 close all
 
 %四个电路参数
-LR = 2.5 * 1e-9; %右手单位长度电感
+LR = 2 * 1e-9; %右手单位长度电感
 CR = 1e-12; %右手单位长度电感
 LL = 2.5 * 1e-9; %右手单位长度电感
-CL = 1e-12; %右手单位长度电感
+CL = 0.75 * 1e-12; %右手单位长度电感
 
 %扫频范围
 Omega = 1e11;
@@ -19,7 +19,10 @@ omega = 0:Omega / 200:Omega;
 px = 10 * 1e-3;
 py = 20 * 1e-3;
 
-%电路
+%光速
+c = 3e8;
+
+%电路增量模型
 Z = 1i * omega * LR / 2 + 1 ./ (1i * 2 * omega * CL);
 Y = 1i * omega * CR + 1 ./ (1i * omega * LL);
 x = -Z .* Y;
@@ -34,11 +37,11 @@ kpx = kpx(idx);
 omega1 = omega(idx);
 
 %因为Beta是向量，所以取范数
-Beta = sqrt(real(kpy) .^ 2 + real(kpx) .^ 2);
+Beta1 = sqrt(real(kpy) .^ 2 + real(kpx) .^ 2);
 
 h1 = figure;
 subplot(1, 3, 1)
-plot(Beta, omega1, '.', 'Color', 'b')
+plot(Beta1, omega1, '.', 'Color', 'b')
 ylim([0 Omega])
 xlabel('Beta*p')
 ylabel('omega')
@@ -51,10 +54,10 @@ idx = imag(kpy) == 0;
 kpy = kpy(idx);
 omega2 = omega(idx);
 
-Beta = sqrt(real(kpy) .^ 2 + real(kpx) .^ 2);
+Beta2 = sqrt(real(kpy) .^ 2 + real(kpx) .^ 2);
 
 subplot(1, 3, 2)
-plot(Beta, omega2, '.', 'Color', 'b')
+plot(Beta2, omega2, '.', 'Color', 'b')
 ylim([0 Omega])
 xlabel('Beta*p')
 ylabel('omega')
@@ -70,19 +73,19 @@ kpy = kpy(idx);
 
 omega3 = omega(idx);
 
-Beta = sqrt(real(kpy) .^ 2 + real(kpx) .^ 2);
+Beta3 = sqrt(real(kpy) .^ 2 + real(kpx) .^ 2);
 %这里反转Beta是为了便于画图，没有实际意义
-Beta = -Beta + max(Beta);
+Beta4 = -Beta3 + max(Beta3);
 
 subplot(1, 3, 3)
-plot(Beta, omega3, '.', 'Color', 'b')
+plot(Beta4, omega3, '.', 'Color', 'b')
 ylim([0 Omega])
 xlabel('Beta*p')
 ylabel('omega')
 title('Dispersion relation from M to gamma')
 
 %% fig4.5(b)
-m=500;%网格精度
+m = 500; %网格精度
 kpx = linspace(-pi, pi, m);
 kpy = linspace(-pi, pi, m);
 
@@ -137,22 +140,47 @@ Y = Y(:)';
 % grid on
 
 %% fig4.5(c) fig4.5(d)
-%画一系列频率(omega<omega0)的等值线图
-omega0 = (LR * CR * LL * CL) ^ (-1/4);
-[~, omega0_idx] = min(abs(omega - omega0));
-omegaless_range = omega(1:omega0_idx);
-omegamore_range=omega(omega0_idx:end)
+%画一系列频率的等值线图
+omegase = sqrt(1 / (LR * CL));
+omegash = sqrt(1 / (LL * CR));
+[~, omegaseidx] = min(abs(omega - omegase));
+[~, omegashidx] = min(abs(omega - omegash));
 
-h3 = figure;
+% h3 = figure;
+% hold on
+
+% for i = 1:5:min(omegaseidx, omegashidx)
+%     plot3(big_array_kpx(i, :), big_array_kpy(i, :), repmat(omega(i), 1, max_length), '.')
+% end
+
+% xlabel('kx*px')
+% ylabel('ky*py')
+% title('Dispersion relation of 2D CRLH with omega<min(omegaseidx, omegashidx)')
+
+% h4 = figure;
+% hold on
+
+% for i = max(omegaseidx, omegashidx):10:length(omega4)
+%     plot3(big_array_kpx(i, :), big_array_kpy(i, :), repmat(omega(i), 1, max_length), '.')
+% end
+
+% xlabel('kx*px')
+% ylabel('ky*py')
+% title('Dispersion relation of 2D CRLH with omega>omax(omegaseidx, omegashidx)')
+
+%% fig4.7(a)
+p = sqrt(px ^ 2 + py ^ 2);
+
+%gamma->X
+eta1 = c * Beta1 ./ omega1 / p;
+%gamma->M
+eta3 = c * Beta3 ./ omega3 / p;
+
+h5 = figure;
 hold on
-
-for i = 1::omega0_idx
-    plot3(big_array_kpx(i, :), big_array_kpy(i, :), repmat(omegaless_range(i), 1, max_length),'.')
-end
-
-h3 = figure;
-hold on
-
-for i = 1:omega0_idx
-    plot3(big_array_kpx(i, :), big_array_kpy(i, :), repmat(omegaless_range(i), 1, max_length),'.')
-end
+plot(omega1, eta1, '-', 'Color', 'b')
+plot(omega3, eta3, '--', 'Color', 'r')
+xlabel('omega')
+ylabel('eta')
+title('refractive index of 2D CRLH')
+legend('gamma->X', 'gamma->M')
