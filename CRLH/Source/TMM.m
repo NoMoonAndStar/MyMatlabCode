@@ -11,8 +11,11 @@ CR = 1e-12; %右手a长度电容
 CV = 1e-12;
 
 %扫频范围
-Omega = 5e10;
-omega = 0:Omega / 10000:Omega;
+fMin = 0;
+fMax = 1e10;
+f = fMin:fMax / 10000:fMax;
+Omega = 2 * pi * fMax;
+omega = 2 * pi * f;
 
 %增量模型
 Z = 1i * omega * LR;
@@ -20,77 +23,127 @@ Y = 1i * omega * CR;
 C = 1 ./ (1i * omega * CV);
 Zc = sqrt(LR / CR);
 omega0 = sqrt(1 / (LR * CR));
-N = 25; %层数
+N = 3; %y方向的层数，此处有三条线，所以是3
+M = 12; %x方向的层数
 
 %传输矩阵
-T = zeros(6, 6, length(omega));
-Th = zeros(6, 6, length(omega));
-Tv = zeros(6, 6, length(omega));
-Ttol = zeros(6, 6, length(omega));
-X = zeros(3, 3, length(omega));
+T = zeros(2 * N, 2 * N, length(omega));
+Th = zeros(2 * N, 2 * N, length(omega));
+Tv = zeros(2 * N, 2 * N, length(omega));
+Ttol = zeros(2 * N, 2 * N, length(omega));
+X = zeros(N, N, length(omega));
 
 %填充传输矩阵
 for i = 1:length(omega)
-    Th(:, :, i) = [diag(ones(1, 3)), Z(i) / 2 * diag(ones(1, 3));
-                   zeros(3, 3), diag(ones(1, 3))];
+    Th(:, :, i) = [eye(N), Z(i) / 2 * eye(N);
+                   zeros(N), eye(N)];
     Ya = Y(i) + 1 / C(i);
     Yb = -1 / C(i);
     Yc = Y(i) + 2 / C(i);
-    X(:, :, i) = [
-                  Ya, Yb, 0;
-                  Yb, Yc, Yb;
-                  0, Yb, Ya
-                  ];
+
+    for k = 1:N
+
+        for j = 1:N
+
+            if k == j
+                %主对角线
+                if k == 1 || k == N
+                    X(k, j, i) = Ya;
+                else
+                    X(k, j, i) = Yc;
+                end
+
+            end
+
+            if abs(k - j) == 1
+                X(k, j, i) = Yb;
+            end
+
+        end
+
+    end
+
     Tv(:, :, i) = [
-                   diag(ones(1, 3)), zeros(3, 3);
-                   X(:, :, i), diag(ones(1, 3))
+                   eye(N), zeros(N);
+                   X(:, :, i), eye(N)
                    ];
     T(:, :, i) = Th(:, :, i) * Tv(:, :, i) * Th(:, :, i);
-    Ttol(:, :, i) = T(:, :, i) ^ N;
+    Ttol(:, :, i) = T(:, :, i) ^ M;
 end
 
-Atol = Ttol(1:3, 1:3, :);
-Btol = Ttol(4:6, 1:3, :);
-Ctol = Ttol(1:3, 4:6, :);
-Dtol = Ttol(4:6, 4:6, :);
+Atol = Ttol(1:N, 1:N, :);
+Btol = Ttol(1:N, N + 1:2 * N, :);
+Ctol = Ttol(N + 1:2 * N, 1:N, :);
+Dtol = Ttol(N + 1:2 * N, N + 1:2 * N, :);
 
 %Z矩阵
-Ztol = zeros(6, 6, length(omega));
-Stol = zeros(6, 6, length(omega));
+Ztol = zeros(2 * N, 2 * N, length(omega));
+Stol = zeros(2 * N, 2 * N, length(omega));
 
 for i = 1:length(omega)
     Ztol(:, :, i) = [Atol(:, :, i) * Ctol(:, :, i) ^ -1, Ctol(:, :, i) ^ -1;
-                     Ctol(:, :, i) ^ -1, Ctol(:, :, i) ^ -1 * Dtol(:, :, i)];
-    Stol(:, :, i) = (Ztol(:, :, i) / Zc + diag(ones(1, 6))) * (Ztol(:, :, i) / Zc - diag(ones(1, 6))) ^ -1;
+                     Ctol(:, :, i) ^ -1, Dtol(:, :, i) * Ctol(:, :, i) ^ -1];
+    Stol(:, :, i) = (Ztol(:, :, i) / Zc + eye(2 * N)) * (Ztol(:, :, i) / Zc - eye(2 * N)) ^ -1;
 end
 
 S11 = squeeze(Stol(1, 1, :));
 S41 = squeeze(Stol(4, 1, :));
 S52 = squeeze(Stol(5, 2, :));
+S63 = squeeze(Stol(6, 3, :));
 S41_phi = angle(S41) .* 180 / pi;
 S52_phi = angle(S52) .* 180 / pi;
-idx_omega0 = find(omega == omega0) + 1;
-unwrapped_S41_phi = unwrap(S41_phi, -360);
-unwrapped_S41_phi = unwrapped_S41_phi - unwrapped_S41_phi(idx_omega0);
-unwrapped_S52_phi = unwrap(S52_phi, -360);
-unwrapped_S52_phi = unwrapped_S52_phi - unwrapped_S52_phi(idx_omega0);
+S63_phi = angle(S63) .* 180 / pi;
 S11_dB = 20 * log10(abs(S11));
 S41_dB = 20 * log10(abs(S41));
 S52_dB = 20 * log10(abs(S52));
+S63_dB = 20 * log10(abs(S63));
 
+%% 画图
 h1 = figure;
-subplot(3, 2, 1:2)
-plot(omega, S11_dB, '-', 'Color', 'b')
+
+subplot(4, 2, 1:2)
+plot(f, S11_dB, '.', 'Color', 'b', 'MarkerSize', 1)
+xlim([0 fMax])
+ylim([-40 10])
+yticks(-40:10:10)
 title('|S11|')
-subplot(3, 2, 3)
-plot(omega, S41_dB, '-', 'Color', 'b')
+grid on
+subplot(4, 2, 3)
+plot(f, S41_dB, '.', 'Color', 'b', 'MarkerSize', 1)
+xlim([0 fMax])
+ylim([-40 10])
+yticks(-40:10:10)
 title('|S41|')
-subplot(3, 2, 4)
-plot(omega, unwrapped_S41_phi, '-', 'Color', 'b')
+grid on
+subplot(4, 2, 4)
+plot(f, S41_phi, '-', 'Color', 'b')
+xlim([0 fMax])
+ylim([-200 200])
 title('S41 phase')
-subplot(3, 2, 5)
-plot(omega, S52_dB, '-', 'Color', 'b')
+grid on
+subplot(4, 2, 5)
+plot(f, S52_dB, '.', 'Color', 'b', 'MarkerSize', 1)
+xlim([0 fMax])
+ylim([-40 10])
+yticks(-40:10:10)
 title('|S52|')
-subplot(3, 2, 6)
-plot(omega, unwrapped_S52_phi, '-', 'Color', 'b')
+grid on
+subplot(4, 2, 6)
+plot(f, S52_phi, '-', 'Color', 'b')
+xlim([0 fMax])
+ylim([-200 200])
 title('S52 phase')
+grid on
+subplot(4, 2, 7)
+plot(f, S63_dB, '.', 'Color', 'b', 'MarkerSize', 1)
+xlim([0 fMax])
+ylim([-40 10])
+yticks(-40:10:10)
+title('|S63|')
+grid on
+subplot(4, 2, 8)
+plot(f, S63_phi, '-', 'Color', 'b')
+xlim([0 fMax])
+ylim([-200 200])
+title('S63 phase')
+grid on
