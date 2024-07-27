@@ -83,7 +83,7 @@ Stol = zeros(2 * N, 2 * N, length(omega));
 for i = 1:length(omega)
     Ztol(:, :, i) = [Atol(:, :, i) * Ctol(:, :, i) ^ -1, Ctol(:, :, i) ^ -1;
                      Ctol(:, :, i) ^ -1, Dtol(:, :, i) * Ctol(:, :, i) ^ -1];
-    Stol(:, :, i) = (Ztol(:, :, i) / Zc + eye(2 * N)) * (Ztol(:, :, i) / Zc - eye(2 * N)) ^ -1;
+    Stol(:, :, i) = (Ztol(:, :, i) / Zc - eye(2 * N)) * (Ztol(:, :, i) / Zc + eye(2 * N)) ^ -1;
 end
 
 S11 = squeeze(Stol(1, 1, :));
