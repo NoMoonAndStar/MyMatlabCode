@@ -10,14 +10,15 @@ CR = 1e-12; %右手单位长度电感
 LL = 2.5 * 1e-9; %右手单位长度电感
 CL = 1e-12; %右手单位长度电感
 
-Omega = 1e11;
+Omega = 1e10 * 2 * pi;
 omega = 0:Omega / 100000:Omega; %扫频范围
+f = omega / 2 / pi;
 
-p = 3.75e-4; %网格间距
+p = 10 * 1e-2; %网格间距
 N = 10; %单元个数
 L = p * N; %网格长度
 
-Z = 1i * omega * LR / 2 + 1 ./ (1i * 2 * omega * CL);
+Z = 1i * omega * LR + 1 ./ (1i * omega * CL);
 Y = 1i * omega * CR + 1 ./ (1i * omega * LL);
 
 Zc = sqrt(Z ./ Y);
@@ -45,8 +46,8 @@ h1 = figure;
 hold on
 S11_dB = 20 * log10(abs(S11));
 S21_dB = 20 * log10(abs(S21));
-plot(omega, S11_dB, '-', 'Color', 'b')
-plot(omega, S21_dB, '-', 'Color', 'r')
+plot(f, S11_dB, '-', 'Color', 'b')
+plot(f, S21_dB, '-', 'Color', 'r')
 ylim([-60 10])
 xlabel('omega')
 ylabel('magnitude')
@@ -58,7 +59,7 @@ h2 = figure;
 hold on
 S11_phi = angle(S11) .* 180 / pi;
 S21_phi = angle(S21) .* 180 / pi;
-plot(omega, S21_phi, '-', 'Color', 'b')
+plot(f, S21_phi, '-', 'Color', 'b')
 xlabel('omega')
 ylabel('phase')
 title('S21 phase')
@@ -70,18 +71,18 @@ unwrappedS21_phi = unwrap(S21_phi, -360);
 [~, idx] = min(abs(omega0 - omega));
 val = mean([unwrappedS21_phi(idx - 1), unwrappedS21_phi(idx + 1)]);
 unwrappedS21_phi = unwrappedS21_phi - val;
-plot(omega, unwrappedS21_phi, '-', 'Color', 'b')
+plot(f, unwrappedS21_phi, '-', 'Color', 'b')
 xlabel('omega')
 ylabel('phase')
 title('unwrapped S21 phase')
 
 %%fig3.20(d)
-beta = -unwrappedS21_phi / L; %相位常数
+beta = -unwrappedS21_phi * pi / 180 / L; %相位常数
 alpha = -log(abs(S21)) / L; %衰减常数
 theta = beta * p; %电长度
 
 h4 = figure;
-plot(theta, omega, '.', 'color', 'b')
+plot(theta, f, '.', 'color', 'b')
 xlabel('theta')
 ylabel('omega')
 title('Dispersion relation')
