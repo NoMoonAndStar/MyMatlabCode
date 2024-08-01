@@ -6,27 +6,26 @@ clc
 close all
 
 %电路参数
-LR = 2.5 * 1e-9; %右手a长度电感
-CR = 1e-12; %右手a长度电容
-CV = 0.5e-12;
+E=48*pi/180;
+F=1e9;
+c=3e8;
+CV = 8.47e-12;
+a=c*E/F/2/pi;
 
 %扫频范围
 fMin = 0;
-fMax = 2e9;
-f = fMin:fMax / 1000:fMax;
+fMax = 1e9;
+f = fMin:fMax / 100000:fMax;
 Omega = 2 * pi * fMax;
 omega = 2 * pi * f;
 
 %增量模型
-Z = 1i * omega * LR;
-Y = 1i * omega * CR;
+Z0=50;
+Y0=1/Z0;
 C = 1 ./ (1i * omega * CV);
-Zc = sqrt(LR / CR);
-omega0 = sqrt(1 / (LR * CR));
 N = 3; %y方向的层数，此处有三条线，所以是3
-M = 12; %x方向的层数
-p = 10 * 1e-3;
-L = p * M;
+M = 64; %x方向的层数
+L = a * M;
 
 %传输矩阵
 T = zeros(2 * N, 2 * N, length(omega));
@@ -37,11 +36,15 @@ X = zeros(N, N, length(omega));
 
 %填充传输矩阵
 for i = 1:length(omega)
-    Th(:, :, i) = [eye(N), Z(i) / 2 * eye(N);
-                   zeros(N), eye(N)];
-    Ya = Y(i) + 1 / C(i);
+    % ?为什么这里用f而不是Omega
+    theta=E/F*f(i);
+    %这里传输矩阵是未归一化的
+    Th(:, :, i) = [cos(theta/2)*eye(3), 1i*Z0*sin(theta/2)*eye(3);
+        1i*Y0*sin(theta/2)*eye(3),cos(theta/2)*eye(3)
+        ];
+    Ya = 1 / C(i);
     Yb = -1 / C(i);
-    Yc = Y(i) + 2 / C(i);
+    Yc = 2 / C(i);
 
     for k = 1:N
 
@@ -85,7 +88,7 @@ Stol = zeros(2 * N, 2 * N, length(omega));
 for i = 1:length(omega)
     Ztol(:, :, i) = [Atol(:, :, i) * Ctol(:, :, i) ^ -1, Ctol(:, :, i) ^ -1;
                      Ctol(:, :, i) ^ -1, Dtol(:, :, i) * Ctol(:, :, i) ^ -1];
-    Stol(:, :, i) = (Ztol(:, :, i) / Zc - eye(2 * N)) * (Ztol(:, :, i) / Zc + eye(2 * N)) ^ -1;
+    Stol(:, :, i) = (Ztol(:, :, i) / Z0 - eye(2 * N)) * (Ztol(:, :, i) / Z0 + eye(2 * N)) ^ -1;
 end
 
 S11 = squeeze(Stol(1, 1, :));
@@ -101,9 +104,9 @@ unwrapped_S63_phi = unwrap(S63_phi, -360);
 beta41 = -unwrapped_S41_phi * pi / 180 / L;
 beta52 = -unwrapped_S52_phi * pi / 180 / L;
 beta63 = -unwrapped_S63_phi * pi / 180 / L;
-theta41 = beta41 * p;
-theta52 = beta52 * p;
-theta63 = beta63 * p;
+theta41 = beta41 * a;
+theta52 = beta52 * a;
+theta63 = beta63 * a;
 S11_dB = 20 * log10(abs(S11));
 S41_dB = 20 * log10(abs(S41));
 S52_dB = 20 * log10(abs(S52));
@@ -111,51 +114,67 @@ S63_dB = 20 * log10(abs(S63));
 
 %% 画图
 h1 = figure;
-
-subplot(2, 4, 1)
 plot(f, S41_dB, 'b-')
-xlim([0 fMax])
 ylim([-40 10])
+xlim([0 fMax])
 yticks(-40:10:10)
 title('S41（调制路）的幅度')
 grid on
-subplot(2, 4, 2)
+
+h2=figure;
 plot(f, S41_phi, '-', 'Color', 'b')
 xlim([0 fMax])
 ylim([-200 200])
 title('S41（调制路）的相位（未展开）')
 grid on
-subplot(2, 4, 3)
+
+h3=figure;
 plot(f, unwrapped_S41_phi, 'r-')
 title('S41（调制路）的相位（展开后）')
 grid on
-subplot(2, 4, 4)
-plot(theta41, f, 'r-')
+
+h4=figure;
+plot(beta41, f, 'r-')
 ylabel('f(Hz)')
-xlabel('β2p')
+xlabel('β2')
 title('调制路的色散关系')
 grid on
 
-subplot(2, 4, 5)
+h5=figure;
 plot(f, S52_dB, 'b-')
 xlim([0 fMax])
 ylim([-40 10])
 yticks(-40:10:10)
 title('S52（主路）的幅度')
 grid on
-subplot(2, 4, 6)
+
+h6=figure;
 plot(f, S52_phi, '-', 'Color', 'b')
 xlim([0 fMax])
 ylim([-200 200])
 title('S52（主路）的相位（未展开）')
 grid on
-subplot(2, 4, 7)
+
+h7=figure;
 plot(f, unwrapped_S52_phi, 'r-')
 title('S52（主路）的相位（展开后）')
 grid on
-subplot(2, 4, 8)
-plot(theta52, f, 'r-')
+
+h8=figure;
+plot(beta52, f, 'r-')
 ylabel('f(Hz)')
-xlabel('β1p')
+xlabel('β1')
 title('主路的色散关系')
 grid on
+
+% 相速度
+vp1=omega'./beta52;
+vp2=omega'./beta41;
+
+h9=figure;
+hold on
+plot(f,vp1,'b-')
+plot(f,vp2,'r-')
+grid on
+legend("调制路","主路")
+
