@@ -10,10 +10,10 @@ Omega = 2 * pi * 5e10;
 omega = 0:Omega / 10000:Omega;
 
 %矩形波导参量
-a = 1000 * 1e-3; %矩形波导的长度
+a = 22.86 * 1e-3; %矩形波导的长度
 b = 5.08 * 1e-3; %矩形波导的宽度
-h = 0.001 * 1e-3; %膜片高度
-p = 10 * 1e-3; %膜片间距
+h = 3.81 * 1e-3; %膜片高度
+p = 5 * 1e-3; %膜片间距
 
 c = 3e8; %真空光速
 k0 = omega / c; %真空波数
@@ -68,3 +68,6 @@ ylim([0, k(end)])
 xlabel('Beta*p')
 ylabel('k*omega/p')
 title('Dispersion relation of the periodic structure')
+plot([pi pi], [0 k(end)], '--', 'Color', 'r')
+plot([-pi -pi], [0 k(end)], '--', 'Color', 'r')
+plot([-4 * pi, 4 * pi], [2, 2], '--', 'Color', 'r')

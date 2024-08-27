@@ -10,8 +10,8 @@ CR = 1e-12; %右手单位长度电感
 LL = 2.5 * 1e-9; %右手单位长度电感
 CL = 1e-12; %右手单位长度电感
 
-Omega = 1e10 * 2 * pi;
-omega = 0:Omega / 100000:Omega; %扫频范围
+Omega = 1e11;
+omega = 0:Omega / 20000:Omega; %扫频范围
 f = omega / 2 / pi;
 
 p = 10 * 1e-2; %网格间距
@@ -82,7 +82,7 @@ alpha = -log(abs(S21)) / L; %衰减常数
 theta = beta * p; %电长度
 
 h4 = figure;
-plot(theta, f, '.', 'color', 'b')
+plot(beta, omega, '.', 'color', 'b')
 xlabel('theta')
 ylabel('omega')
 title('Dispersion relation')

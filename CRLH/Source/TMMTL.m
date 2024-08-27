@@ -91,6 +91,10 @@ for i = 1:length(omega)
     Stol(:, :, i) = (Ztol(:, :, i) / Z0 - eye(2 * N)) * (Ztol(:, :, i) / Z0 + eye(2 * N)) ^ -1;
 end
 
+Z11=squeeze(Ztol(1,1,:));
+Z22=squeeze(Ztol(2,2,:));
+Z44=squeeze(Ztol(1,1,:));
+Z55=squeeze(Ztol(1,1,:));
 S11 = squeeze(Stol(1, 1, :));
 S41 = squeeze(Stol(4, 1, :));
 S52 = squeeze(Stol(5, 2, :));
@@ -176,5 +180,5 @@ hold on
 plot(f,vp1,'b-')
 plot(f,vp2,'r-')
 grid on
-legend("调制路","主路")
+legend("主路","调制路")
 
