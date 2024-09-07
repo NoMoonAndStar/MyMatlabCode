@@ -6,14 +6,20 @@ clc
 close all
 
 %扫频范围
-Omega = 2 * pi * 25e9;
-omega = 0:Omega / 10000:Omega;
+fmin = 1e9;
+fmax = 25e9;
+Omegamin = 2 * pi * fmin;
+Omega = 2 * pi * fmax;
+omega = Omegamin:Omega / 10000/2 / pi:Omega;
 
 %矩形波导参量
 a = 60 * 1e-3; %矩形波导的长度
 b = 5.08 * 1e-3; %矩形波导的宽度
 h = 3.81 * 1e-3; %膜片高度
-p = 1 * 1e-3; %膜片间距
+p = 10 * 1e-3; %膜片间距
+mu = 4 * pi * 1e-7;
+eps = 8.854e-12;
+kc = 2 * pi / 2 / a;
 
 c = 3e8; %真空光速
 k0 = omega / c; %真空波数
@@ -63,22 +69,19 @@ k = k * c / p / 2 / pi / 1e9;
 kcTE10 = 2 * pi / 2 / a;
 
 betaTE10 = sqrt((omega / c) .^ 2 - kcTE10 ^ 2);
+Beta = Beta / p;
 
 save '..\Data\Disepersion.mat' Beta k
 
 h1 = figure;
 hold on
-plot(real(betaTE10) * p, omega / 2 / pi / 1e9, 'k:', 'LineWidth', 2)
+plot(real(betaTE10), omega / 2 / pi / 1e9, 'k:', 'LineWidth', 2)
 plot(Beta, k, 'b.')
-plot(-Beta, k, 'b.')
 plot([0 0], [0 k(end)], 'LineWidth', 1, 'Color', 'k')
-plot(-real(betaTE10) * p, omega / 2 / pi / 1e9, 'k:', 'LineWidth', 2)
-xlim([-4 * pi, 4 * pi])
+xlim([0, 4 * pi / p])
 ylim([0, k(end)])
-xlabel('Beta*p')
+xlabel('Beta(rad/m)')
 ylabel('Frequency(GHz)')
+grid on
 title('Dispersion relation of TE10 mode in periodic waveguide')
 legend('empty waveguide', 'periodic waveguide')
-% plot([pi pi], [0 k(end)], '--', 'Color', 'r')
-% plot([-pi -pi], [0 k(end)], '--', 'Color', 'r')
-% plot([-4 * pi, 4 * pi], [2, 2], '--', 'Color', 'r')
