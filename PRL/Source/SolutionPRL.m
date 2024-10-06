@@ -11,7 +11,7 @@ c = 3e8; %光速
 Omega = c * g; %时间调制频率
 eps0 = 8.85e-12; %真空介电常数
 mu0 = 4 * pi * 1e-7; %真空磁导率
-N = 15; %平面波展开阶数
+N = 1; %平面波展开阶数
 alpha = 0.06; %调制强度
 
 %% Preprocessing
@@ -132,7 +132,7 @@ for k = 1:length(d)
 end
 
 %% Combine time domain waveform
-Ts = 1 / (1200 * Omega);
+Ts = 1 / (1 * Omega);
 t = 0:Ts:6 * pi / Omega - Ts;
 tNum = length(t);
 EHi = Mvinc * evinc; %入射波系数

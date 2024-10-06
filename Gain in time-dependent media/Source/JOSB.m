@@ -43,6 +43,9 @@ deltalist = [-0.05, -0.025, 0, 0.025, 0.05];
 
 for i = 1:length(deltalist)
     delta = deltalist(i);
+    cg = (1 + delta) * c / sqrt(eps1);
+    g = Omega / cg; %调制空间频率
+    X = linspace(0, 2 * pi / g, 5000);
     UD(i, :) = exp(-g * (2 + delta) * alpha * sin(g * X) * tau - (delta + alpha * cos(g * X)) .^ 2/2 / alpha ^ 2 * (-1 - 2 * alpha * g * tau + exp(2 * alpha * g * tau)) ...
         +delta * (delta + alpha * cos(g * X)) * 2 / alpha ^ 2 * (-1 - alpha * g * tau + exp(alpha * g * tau)));
 
