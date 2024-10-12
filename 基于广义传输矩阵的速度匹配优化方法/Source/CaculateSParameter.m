@@ -1,6 +1,5 @@
 function S = CaculateSParameter(UnitE, F, VaractorCj0, VaractorM, VaractorVj0, VStatic, Zc1, Zc2, ...
-        LSeries1, LSeries2, EHorizontalPort1, EVerticalPort1, EHorizontalPort2, EVerticalPort2, ...
-        EHorizontalPort4, EVerticalPort4, EHorizontalPort5, EVerticalPort5, N, Fmin, Fmax, FSweep)
+        LSeries1, LSeries2, ZPort1, ZPort2, ZPort3, ZPort4, ZPort5, ZPort6, N, Fmin, Fmax, FSweep)
     %% 根据参数计算S参数
     arguments
         UnitE(1, 1) {mustBeNumeric, mustBeFinite} % 单元电长度，单位：弧度
@@ -13,14 +12,12 @@ function S = CaculateSParameter(UnitE, F, VaractorCj0, VaractorM, VaractorVj0, V
         Zc2(1, 1) {mustBeNumeric, mustBeFinite} % 主路的特性阻抗
         LSeries1(1, 1) {mustBeNumeric, mustBeFinite} % 调制路串联集总电感值
         LSeries2(1, 1) {mustBeNumeric, mustBeFinite} % 主路串联集总电感值
-        EHorizontalPort1(1, 1) {mustBeNumeric, mustBeFinite} % 端口1匹配电路横向
-        EVerticalPort1(1, 1) {mustBeNumeric, mustBeFinite} % 端口1匹配电路纵向
-        EHorizontalPort2(1, 1) {mustBeNumeric, mustBeFinite} % 端口2匹配电路横向
-        EVerticalPort2(1, 1) {mustBeNumeric, mustBeFinite} % 端口2匹配电路纵向
-        EHorizontalPort4(1, 1) {mustBeNumeric, mustBeFinite} % 端口4匹配电路横向
-        EVerticalPort4(1, 1) {mustBeNumeric, mustBeFinite} % 端口4匹配电路纵向
-        EHorizontalPort5(1, 1) {mustBeNumeric, mustBeFinite} % 端口5匹配电路横向
-        EVerticalPort5(1, 1) {mustBeNumeric, mustBeFinite} % 端口5匹配电路纵向
+        ZPort1(1, 1) {mustBeNumeric, mustBeFinite} % 端口1的特性阻抗
+        ZPort2(1, 1) {mustBeNumeric, mustBeFinite} % 端口2的特性阻抗
+        ZPort3(1, 1) {mustBeNumeric, mustBeFinite} % 端口3的特性阻抗
+        ZPort4(1, 1) {mustBeNumeric, mustBeFinite} % 端口4的特性阻抗
+        ZPort5(1, 1) {mustBeNumeric, mustBeFinite} % 端口5的特性阻抗
+        ZPort6(1, 1) {mustBeNumeric, mustBeFinite} % 端口6的特性阻抗
         N(1, 1) {mustBeInteger, mustBeFinite} % 单元总数
         Fmin(1, 1) {mustBeNumeric, mustBeFinite} % 扫频最小值
         Fmax(1, 1) {mustBeNumeric, mustBeFinite} % 扫频最大值
@@ -32,7 +29,6 @@ function S = CaculateSParameter(UnitE, F, VaractorCj0, VaractorM, VaractorVj0, V
     Freq = linspace(Fmin, Fmax, FSweep); % 扫频范围
     Omega = 2 * pi * Freq;
     CVS = VaractorCj0 / (1 + VStatic / VaractorVj0) ^ VaractorM; % 变容管静态电容
-    Z0 = 50; % 端口阻抗都设成50欧姆，而不调整端口阻抗，因为其一实际测试的端口阻抗都是50欧姆，其二不方便计算S参数（但还是可以算）
     S = zeros(6, 6, FSweep);
 
     %% 计算散射矩阵
@@ -61,15 +57,17 @@ function S = CaculateSParameter(UnitE, F, VaractorCj0, VaractorM, VaractorVj0, V
         TUnitVerital = [eye(3), zeros(3);
                         X, eye(3)];
         TUnit = TUnitHorizontal1 * TUnitVerital * TUnitHorizontal2;
-        Ttotal = TUnit ^ N;
+        Ttotal = TUnit ^ N; % 周期结构的总传输矩阵
 
         %% 阶段性debug分界线
         % ---------------------------------------------------------------------------------------------------------------------------------------------
 
         Ztotal = [Ttotal(1:3, 1:3) * Ttotal(4:6, 1:3) ^ -1, Ttotal(4:6, 1:3) ^ -1; % 从传输矩阵到阻抗矩阵
-                  Ttotal(4:6, 1:3) ^ -1, (Ttotal(4:6, 1:3) ^ -1) * Ttotal(4:6, 4:6)]; 
+                  Ttotal(4:6, 1:3) ^ -1, (Ttotal(4:6, 1:3) ^ -1) * Ttotal(4:6, 4:6)];
 
-        ZNormolized = Ztotal / Z0; % 归一化阻抗矩阵，这里因为6个端口都是Z0，所以除以Z0就可以了
+        ZPortSqrt = diag(1 ./ sqrt([ZPort1, ZPort2, ZPort3, ZPort4, ZPort5, ZPort6])); % [1/sqrt(Z_{oi})]
+
+        ZNormolized = ZPortSqrt * Ztotal * ZPortSqrt;
         S(:, :, loop) = (ZNormolized - eye(6)) * (ZNormolized + eye(6)) ^ -1; % 从归一化阻抗矩阵得到散射矩阵
         loop = loop + 1;
     end
