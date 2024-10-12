@@ -1,3 +1,0 @@
-
-cd(fileparts(mfilename('fullpath')));
-
