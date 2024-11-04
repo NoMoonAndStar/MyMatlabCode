@@ -8,10 +8,10 @@ delta = 0; %偏差
 alpha = 0.05; %调制强度
 Omega = 0.07 * 1e9; %调制频率
 omega = 1 * 1e9; %输入频率
-eps1 = 1.45;
+eps1 = 1;
 eps0 = 8.854e-12;
 c = 3e8;
-cg = c / sqrt(eps1);
+cg = (1 + delta) * c / sqrt(eps1);
 g = Omega / cg; %调制空间频率
 
 %% 计算
@@ -52,7 +52,7 @@ for i = 1:length(deltalist)
 end
 
 %% 绘图
-figure(1)
+h1 = figure;
 plot(g * X / 2 / pi, UA, 'r-', 'LineWidth', 2)
 xlim([0 1])
 xlabel('gX/2\pi')
@@ -60,7 +60,7 @@ ylabel('U(X)')
 grid on
 title('能量密度 \tau=37.5')
 
-figure(2)
+h2 = figure;
 plot(g * X / 2 / pi, UB, 'r-', 'LineWidth', 2)
 xlim([0 1])
 xlabel('gX/2\pi')
@@ -68,15 +68,16 @@ ylabel('U(X)')
 grid on
 title('能量密度 \tau=150')
 
-figure(3)
-plot(g * X / 2 / pi, real(E), 'r-', 'LineWidth', 2)
+h3 = figure;
+plot(g * X / 2 / pi, real(E(:)), 'r-', 'LineWidth', 2)
 xlim([0.65, 0.85])
+ylim([-2.5e6, 2.5e6])
 xlabel('gX/2\pi')
 ylabel('Re(E(X))')
 grid on
 title('E(X)的幅度')
 
-figure(4)
+h4 = figure;
 plot(g * X / 2 / pi, UD, 'LineWidth', 2)
 xlim([0.5 1])
 xlabel('gX/2\pi')

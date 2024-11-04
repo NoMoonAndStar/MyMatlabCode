@@ -1,0 +1,10 @@
+figure;
+grid on
+for i = 1:97
+    hold on
+    plot([0, 7000], [0, 0], 'k-')
+    plot(trwave(:,i))
+    ylim([-5e-6, 5e-6])
+    hold off
+    pause(0.1)
+end
