@@ -18,9 +18,9 @@ alpha = 0.05; % 调制强度
 d = 200; % 介质长度
 
 %% 计算色散曲线
-Omega = (1e9:0.0001e9:1.0001e9)'; % 扫频范围
+Omega = 1.00000000001e9; % 扫频范围
 OmegaNum = length(Omega); % 扫频点数
-Order = 150; % 展开阶数
+Order = 200; % 展开阶数
 HarmonicNum = 2 * Order + 1; % 谐波数目（包含正负）
 HarmonicSequence = -Order:Order; % 阶次序号
 
@@ -107,7 +107,7 @@ end
 %%--------------------------------分界线---------------------------------------%%
 %% 传输矩阵法解场分布，此处考虑一个有限长度，无限宽度的TEM波导
 %% 输入参数
-OmegaInput = 1.0001e9;
+OmegaInput = 1.00000000001e9;
 NormOmegaInput = OmegaInput / OMEGA; % 归一化入射角频率
 % 找出对应的波数
 [~, OmegaInputIndex] = min(abs(Omega/OMEGA-NormOmegaInput)); % 该输入频率对应的索引
@@ -156,7 +156,7 @@ Etra = Etra(1:HarmonicNum);
 
 % 时间因子
 tnum = 5000;
-Omegat = linspace(0, 2 * pi, tnum)'; % 观察2个调制周期
+Omegat = linspace(0, 20 * pi, tnum)'; % 观察2个调制周期
 
 % 合成场
 Einct = zeros(1, tnum);
@@ -193,7 +193,7 @@ legend('入射场', '反射场', '透射场')
 hold off
 
 % 超材料内部场
-xnum = 2000;
+xnum = 1000;
 em = (Mm ^ -1) * (Mvinc * evinc + Mvref * evref);
 x = linspace(0, d, xnum)'; % 距离因子
 Px = exp(1i * LuminWaveNumber .* x); % 相移矩阵，每一行代表一个空间点
@@ -224,6 +224,18 @@ end
 %     pause(0.01)
 % end
 
+h4 = figure('name', '不同时间的空间场');
+xlabel('x')
+ylabel('V/m')
+for i = 1:tnum
+    plot(x, Elumin(:, i), 'b', 'LineWidth', 2)
+    xlabel('x')
+    ylabel('V/m')
+    title(strcat('Omegat=', num2str(Omegat(i))))
+    ylim([-10, 10])
+    pause(0.01)
+end
+
 %% 复现图
 
 d1 = 37.5; % 对应于tau
@@ -232,7 +244,8 @@ eps = epslionr * (1 + 2 * alpha * cos(Omegat))';
 Et1 = Elumin(round(d1 / (d / xnum)), :);
 Et2 = Elumin(round(d2 / (d / xnum)), :);
 
-% load 'UA' 'UB'
+% load 'UA.mat'
+% load 'UB.mat'
 % h4 = figure;
 % hold on
 % plot((- Omegat + 2 * pi)/2/pi, eps.*abs(Et1).^2, 'k--', 'LineWidth', 2)
@@ -268,17 +281,11 @@ Et2 = Elumin(round(d2 / (d / xnum)), :);
 
 load 'E.mat'
 h7 = figure;
-subplot(1,2,1)
-plot((1:length(E))/length(E), real(E), 'r-', 'LineWidth', 2)
+hold on
+plot((1:length(E))/length(E)+0.003, real(E)/max(real(E)), 'r-', 'LineWidth', 2)
+plot((- Omegat + 2 * pi)/2/pi, real(Et2)/max(real(Et2)), 'k--', 'LineWidth', 2)
 xlim([0.65 0.85])
+ylim([-1 1])
 xlabel('gX')
 ylabel('V/m')
-grid on
-title('JOSB')
-subplot(1,2,2)
-plot((- Omegat + 2 * pi)/2/pi, real(Et2), 'k', 'LineWidth', 2)
-xlim([0.65 0.85])
-xlabel('gX')
-ylabel('V/m')
-grid on
 title('F-B')

@@ -1,5 +1,5 @@
 %% 复现JOSB的图
-clear
+% clear
 clc
 close all
 
