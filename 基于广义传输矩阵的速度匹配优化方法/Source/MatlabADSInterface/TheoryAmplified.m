@@ -39,8 +39,7 @@ function [TNorm, PA] = TheoryAmplified(Cj0, M, Vj0, VStatic, a, EffectiveDielect
     Mc2 = CM2 * CV / (CMsub + CV); % 等效二次谐波调制强度
     Mc3 = CM3 * CV / (CMsub + CV); % 等效二次谐波调制强度
     Mc4 = CM4 * CV / (CMsub + CV); % 等效二次谐波调制强度
-    disp("基频调制强度为：")
-    disp(Mc1)
+    table({'Mc1', 'Mc2', 'Mc3', 'Mc4'}', [Mc1, Mc2, Mc3, Mc4]')
     % 放大倍数
     TNorm = t * fm; % t/T
     PA = exp((Mc1 + 2*Mc2 + 3*Mc3 + 4 * Mc4) * OmegaModulate * tA);

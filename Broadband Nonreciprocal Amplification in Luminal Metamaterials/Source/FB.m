@@ -15,12 +15,12 @@ delta = 0; % 速度差
 cg = (1 + delta) * c0 / sqrt(epslionr); % 光栅速度
 g = OMEGA / cg; % 调制空间频率
 alpha = 0.05; % 调制强度
-d = 200; % 介质长度
+d = 100; % 介质长度
 
 %% 计算色散曲线
-Omega = 1.00000000001e9; % 扫频范围
+Omega = 1e9; % 扫频范围
 OmegaNum = length(Omega); % 扫频点数
-Order = 200; % 展开阶数
+Order = 50; % 展开阶数
 HarmonicNum = 2 * Order + 1; % 谐波数目（包含正负）
 HarmonicSequence = -Order:Order; % 阶次序号
 
@@ -107,7 +107,7 @@ end
 %%--------------------------------分界线---------------------------------------%%
 %% 传输矩阵法解场分布，此处考虑一个有限长度，无限宽度的TEM波导
 %% 输入参数
-OmegaInput = 1.00000000001e9;
+OmegaInput = 1e9;
 NormOmegaInput = OmegaInput / OMEGA; % 归一化入射角频率
 % 找出对应的波数
 [~, OmegaInputIndex] = min(abs(Omega/OMEGA-NormOmegaInput)); % 该输入频率对应的索引
@@ -155,8 +155,8 @@ Etra = Mvinc * evtra; % 透射场复矢量
 Etra = Etra(1:HarmonicNum);
 
 % 时间因子
-tnum = 5000;
-Omegat = linspace(0, 20 * pi, tnum)'; % 观察2个调制周期
+tnum = 500;
+Omegat = linspace(0, 2 * pi, tnum)'; % 观察2个调制周期
 
 % 合成场
 Einct = zeros(1, tnum);
@@ -192,14 +192,16 @@ ylabel('(V/m)^2')
 legend('入射场', '反射场', '透射场')
 hold off
 
-% 超材料内部场
-xnum = 1000;
+%% 超材料内部场
+xnum = 5000;
 em = (Mm ^ -1) * (Mvinc * evinc + Mvref * evref);
 x = linspace(0, d, xnum)'; % 距离因子
 Px = exp(1i * LuminWaveNumber .* x); % 相移矩阵，每一行代表一个空间点
 Em = zeros(xnum, HarmonicNum); % 超材料内电场复矢量，每一行代表一个空间点
 Hm = zeros(xnum, HarmonicNum); % 超材料内电场复矢量，每一行代表一个空间点
 Elumin = zeros(xnum, tnum);
+Hlumin = zeros(xnum, tnum);
+eps = epslionr * (1 + 2 * alpha * cos(Omegat))';
 for i = 1:xnum
     EHtemp = Mm * diag(Px(i, :)) * em;
     Em(i, :) = EHtemp(1:HarmonicNum);
@@ -208,6 +210,7 @@ end
 
 for i = 1:tnum
     Elumin(:, i) = sum(Em .* exp(-1i * ((OmegaInput / OMEGA + HarmonicSequence) * Omegat(i))), 2); % 超材料内的场
+    Hlumin(:, i) = sum(Hm .* exp(-1i * ((OmegaInput / OMEGA + HarmonicSequence) * Omegat(i))), 2); % 超材料内的场
 end
 
 %% 绘制动画
@@ -216,33 +219,48 @@ end
 % xlabel('x')
 % ylabel('V/m')
 % for i = 1:xnum
-%     plot(Omegat, Elumin(i, :), 'b', 'LineWidth', 2)
+%     plot(Omegat/2/pi, real(Elumin(i, :)), 'b', 'LineWidth', 2)
 %     xlabel('Omegat')
 %     ylabel('V/m')
 %     title(strcat('x=', num2str(x(i))))
+%     pause(0.01)
+% end
+
+% h3 = figure('name', '不同空间位置处的场');
+% for i = 1:xnum
+%     subplot(1,2,1)
+%     plot(Omegat/2/pi, 1 / 2 * eps * epslion0 .* abs(Elumin(i, :)).^2, 'b', 'LineWidth', 2)
+%     xlabel('Omegat')
+%     ylabel('J/m^3')
+%     title(strcat('x=', num2str(x(i))))
+%     subplot(1,2,2)
+%     plot(Omegat/2/pi, 1 / 2 * mu0 * abs(Hlumin(i, :)).^2, 'r', 'LineWidth', 2)
+%     xlabel('Omegat')
+%     ylabel('J/m^3')
+%     title(strcat('x=', num2str(x(i))))
+%     pause(0.01)
+% end
+% 
+
+% h4 = figure('name', '不同时间的空间场');
+% xlabel('x')
+% ylabel('V/m')
+% for i = 1:tnum
+%     plot(x, Elumin(:, i), 'b', 'LineWidth', 2)
+%     xlabel('x')
+%     ylabel('V/m')
+%     title(strcat('Omegat=', num2str(Omegat(i))))
 %     ylim([-10, 10])
 %     pause(0.01)
 % end
 
-h4 = figure('name', '不同时间的空间场');
-xlabel('x')
-ylabel('V/m')
-for i = 1:tnum
-    plot(x, Elumin(:, i), 'b', 'LineWidth', 2)
-    xlabel('x')
-    ylabel('V/m')
-    title(strcat('Omegat=', num2str(Omegat(i))))
-    ylim([-10, 10])
-    pause(0.01)
-end
-
 %% 复现图
 
-d1 = 37.5; % 对应于tau
-d2 = 150;
-eps = epslionr * (1 + 2 * alpha * cos(Omegat))';
-Et1 = Elumin(round(d1 / (d / xnum)), :);
-Et2 = Elumin(round(d2 / (d / xnum)), :);
+% d1 = 37.5; % 对应于tau
+% d2 = 150;
+% eps = epslionr * (1 + 2 * alpha * cos(Omegat))';
+% Et1 = Elumin(round(d1 / (d / xnum)), :);
+% Et2 = Elumin(round(d2 / (d / xnum)), :);
 
 % load 'UA.mat'
 % load 'UB.mat'
@@ -279,13 +297,41 @@ Et2 = Elumin(round(d2 / (d / xnum)), :);
 % grid on
 % title('不同速度差下的能量密度')
 
-load 'E.mat'
-h7 = figure;
-hold on
-plot((1:length(E))/length(E)+0.003, real(E)/max(real(E)), 'r-', 'LineWidth', 2)
-plot((- Omegat + 2 * pi)/2/pi, real(Et2)/max(real(Et2)), 'k--', 'LineWidth', 2)
-xlim([0.65 0.85])
-ylim([-1 1])
-xlabel('gX')
-ylabel('V/m')
-title('F-B')
+% load 'E.mat'
+% h7 = figure;
+% hold on
+% plot((1:length(E))/length(E)+0.003, real(E)/max(real(E)), 'r-', 'LineWidth', 2)
+% plot((- Omegat + 2 * pi)/2/pi, real(Et2)/max(real(Et2)), 'k--', 'LineWidth', 2)
+% xlim([0.65 0.85])
+% ylim([-1 1])
+% xlabel('gX')
+% ylabel('V/m')
+% title('F-B')
+
+%% 与理论方法比较
+% t = d / (c0 / sqrt(epslionr));
+% FirstU = exp(-2 * alpha * OMEGA * t * sin(Omegat));
+% SecondU = exp(-2 * alpha * OMEGA * t * sin(Omegat) - ((alpha * OMEGA * t) ^ 2) * (cos(Omegat) .^ 2));
+% CorFirstU = exp(- alpha * OMEGA * t * sin(Omegat));
+% CorSecondU = exp(-alpha * OMEGA * t * sin(Omegat) - 1 / 2 *((alpha * OMEGA * t) ^ 2) * (cos(Omegat) .^ 2));
+% 
+% h7 = figure;
+% hold on
+% plot((- Omegat + 2 * pi)/2/pi, FirstU, 'b-', 'LineWidth', 1) % 把X坐标变为Omegat
+% plot((- Omegat + 2 * pi)/2/pi, SecondU, 'g-') % 把X坐标变为Omegat
+% plot(Omegat/2/pi, abs(Elumin(end, :)).^2, 'r-', 'LineWidth', 1)
+% plot((- Omegat + 2 * pi)/2/pi, CorFirstU, 'b--', 'LineWidth', 1) % 把X坐标变为Omegat
+% plot((- Omegat + 2 * pi)/2/pi, CorSecondU, 'g--') % 把X坐标变为Omegat
+% legend('未修正零阶解','未修正一阶解','F-B方法', '修正零阶解', '修正一阶解', 'AutoUpdate', 'off')
+% plot([0.25 0.25], [0, 6], 'k:', 'LineWidth', 0.75)
+% plot([0.75 0.75], [0, 6], 'k-.', 'LineWidth', 1)
+% text(0.22, 5.7, 'gain', 'FontSize', 12)
+% text(0.72, 0.5, 'loss', 'FontSize', 12)
+% xlabel('\Omegat')
+% ylabel('|E_o_u_t|^2')
+% grid on
+
+%% 放大倍数曲线
+PA = max(abs(Elumin).^2, [], 2);
+plot(x/cg*OMEGA/2/pi * 2, PA)
+xlim([0 7.5])
